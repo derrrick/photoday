@@ -5,53 +5,31 @@ import Image from "next/image";
 import Calendar from "@/components/calendar";
 import { Button } from "@/components/ui/button";
 
-// Mock image database - in a real app, this would come from an API or database
-const mockImages = [
+// Interface for photo data
+interface Photo {
+  fileName: string;
+  date: string;
+  caption: string;
+  size: number;
+  uploadedAt: string;
+  url: string;
+}
+
+// Helper function to get today's date in YYYY-MM-DD format
+const getTodayDateString = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+// Fallback images for when no photos are available
+const fallbackImages = [
   { 
     date: "2025-01-01", 
     src: "https://images.unsplash.com/photo-1467810563316-b5476525c0f9?q=80&w=1000&auto=format&fit=crop",
     caption: "New Year's Day 2025 - Fireworks celebration" 
-  },
-  { 
-    date: "2025-01-15", 
-    src: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?q=80&w=1000&auto=format&fit=crop", 
-    caption: "Mid-January forest walk" 
-  },
-  { 
-    date: "2025-01-30", 
-    src: "https://images.unsplash.com/photo-1480497490787-505ec076689f?q=80&w=1000&auto=format&fit=crop", 
-    caption: "End of January sunset" 
-  },
-  { 
-    date: "2025-02-14", 
-    src: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=1000&auto=format&fit=crop", 
-    caption: "Valentine's Day roses" 
-  },
-  // Note: Missing February 20 and 21
-  { 
-    date: "2025-02-22", 
-    src: "https://images.unsplash.com/photo-1494783367193-149034c05e8f?q=80&w=1000&auto=format&fit=crop", 
-    caption: "Weekend getaway" 
-  },
-  { 
-    date: "2025-02-23", 
-    src: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?q=80&w=1000&auto=format&fit=crop", 
-    caption: "Spring flowers" 
-  },
-  { 
-    date: "2025-02-24", 
-    src: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=1000&auto=format&fit=crop", 
-    caption: "Monday at the beach" 
-  },
-  { 
-    date: "2025-02-25", 
-    src: "https://images.unsplash.com/photo-1486299267070-83823f5448dd?q=80&w=1000&auto=format&fit=crop", 
-    caption: "City lights" 
-  },
-  { 
-    date: "2025-02-26", 
-    src: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?q=80&w=1000&auto=format&fit=crop", 
-    caption: "Sunset by the lake" 
   },
   { 
     date: "2025-02-27", 
@@ -60,35 +38,88 @@ const mockImages = [
   },
 ];
 
-// Helper function to get available dates (dates that have images)
-const getAvailableDates = () => {
-  return mockImages.map(img => img.date);
-};
-
-// Helper function to check if a date has a photo
-const hasPhotoForDate = (dateString: string) => {
-  return mockImages.some(img => img.date === dateString);
-};
-
-// Helper function to get today's date in our format
-const getTodayDateString = () => {
-  return "2025-02-27"; // February 27, 2025 (matching the calendar component)
-};
-
-// Helper function to get today's image
-const getTodayImage = () => {
-  const todayDate = getTodayDateString();
-  return mockImages.find(img => img.date === todayDate) || mockImages[mockImages.length - 1];
-};
-
 export default function Home() {
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   // Initialize with today's date selected
   const [selectedDate, setSelectedDate] = useState<string | null>(getTodayDateString());
-  const [currentImage, setCurrentImage] = useState<{ src: string; caption: string } | null>(getTodayImage());
-  const availableDates = getAvailableDates();
+  const [currentImage, setCurrentImage] = useState<{ src: string; caption: string } | null>(null);
+  
+  // Fetch photos from the API
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/photos');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch photos');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.photos) {
+          setPhotos(data.photos);
+        } else {
+          throw new Error(data.error || 'Failed to fetch photos');
+        }
+      } catch (err) {
+        console.error('Error fetching photos:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchPhotos();
+  }, []);
+  
+  // Helper function to get available dates (dates that have images)
+  const getAvailableDates = () => {
+    return photos.map(photo => photo.date);
+  };
+  
+  // Helper function to check if a date has a photo
+  const hasPhotoForDate = (dateString: string) => {
+    return photos.some(photo => photo.date === dateString);
+  };
+  
+  // Helper function to get today's image
+  const getTodayImage = () => {
+    const todayDate = getTodayDateString();
+    
+    // First, try to find a photo with today's date
+    const todayPhoto = photos.find(photo => photo.date === todayDate);
+    
+    if (todayPhoto) {
+      return { 
+        src: todayPhoto.url, 
+        caption: todayPhoto.caption 
+      };
+    }
+    
+    // If no photo for today, get the most recent photo
+    if (photos.length > 0) {
+      // Photos are already sorted by date (newest first) from the API
+      const latestPhoto = photos[0];
+      return { 
+        src: latestPhoto.url, 
+        caption: latestPhoto.caption 
+      };
+    }
+    
+    // If no photos at all, use a fallback
+    return { 
+      src: fallbackImages[1].src, 
+      caption: fallbackImages[1].caption 
+    };
+  };
 
   // Function to find the nearest available date
   const findNearestDate = (targetDate: string, direction: 'prev' | 'next'): string | null => {
+    const availableDates = getAvailableDates();
     if (!targetDate || availableDates.length === 0) return null;
     
     const targetTime = new Date(targetDate).getTime();
@@ -110,12 +141,20 @@ export default function Home() {
     }
   };
 
-  // Load image when selected date changes
+  // Load image when selected date changes or photos are loaded
   useEffect(() => {
+    if (photos.length === 0) {
+      // If no photos loaded yet, don't update the current image
+      return;
+    }
+    
     if (selectedDate) {
-      const image = mockImages.find(img => img.date === selectedDate);
-      if (image) {
-        setCurrentImage({ src: image.src, caption: image.caption });
+      const photo = photos.find(p => p.date === selectedDate);
+      if (photo) {
+        setCurrentImage({ 
+          src: photo.url, 
+          caption: photo.caption 
+        });
       } else {
         // If no exact match, set a default or placeholder
         setCurrentImage({ 
@@ -127,7 +166,7 @@ export default function Home() {
       // If no date is selected, show today's photo
       setCurrentImage(getTodayImage());
     }
-  }, [selectedDate]);
+  }, [selectedDate, photos]);
 
   const handleDateSelect = (date: string) => {
     // Only select dates that have photos
@@ -152,53 +191,72 @@ export default function Home() {
   const hasPrevious = selectedDate && findNearestDate(selectedDate, 'prev') !== null;
   const hasNext = selectedDate && findNearestDate(selectedDate, 'next') !== null;
 
+  // Set initial image when photos are loaded
+  useEffect(() => {
+    if (!loading && photos.length > 0 && !currentImage) {
+      setCurrentImage(getTodayImage());
+    }
+  }, [loading, photos]);
+
   return (
     <main className="flex min-h-screen flex-col items-center bg-white py-24 px-4">
       <div className="max-w-[800px] w-full">
-        <div className="relative flex flex-col items-center">
-          {/* Left navigation arrow */}
-          <button 
-            onClick={handlePrevious}
-            disabled={!hasPrevious}
-            className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white/80 hover:bg-white/90 p-2 rounded-full shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Previous photo"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-800">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-          
-          <Image
-            src={currentImage?.src || getTodayImage().src}
-            width={800}
-            height={450}
-            alt={currentImage?.caption || getTodayImage().caption}
-            className="w-full h-auto rounded-lg shadow-md"
-            priority
-          />
-          
-          {/* Right navigation arrow */}
-          <button 
-            onClick={handleNext}
-            disabled={!hasNext}
-            className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white/80 hover:bg-white/90 p-2 rounded-full shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Next photo"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-800">
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-          </button>
-          
-          <p className="mt-4 text-center text-gray-700 text-lg italic">
-            {currentImage?.caption || getTodayImage().caption}
-          </p>
-        </div>
+        {loading ? (
+          <div className="flex justify-center items-center h-[450px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+            {error}
+          </div>
+        ) : (
+          <div className="relative flex flex-col items-center">
+            {/* Left navigation arrow */}
+            <button 
+              onClick={handlePrevious}
+              disabled={!hasPrevious}
+              className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white/80 hover:bg-white/90 p-2 rounded-full shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Previous photo"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-800">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            
+            {currentImage && (
+              <Image
+                src={currentImage.src}
+                width={800}
+                height={450}
+                alt={currentImage.caption}
+                className="w-full h-auto rounded-lg shadow-md"
+                priority
+              />
+            )}
+            
+            {/* Right navigation arrow */}
+            <button 
+              onClick={handleNext}
+              disabled={!hasNext}
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white/80 hover:bg-white/90 p-2 rounded-full shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Next photo"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-800">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+            
+            <p className="mt-4 text-center text-gray-700 text-lg italic">
+              {currentImage?.caption || "Loading..."}
+            </p>
+          </div>
+        )}
 
         <div className="mt-[200px] w-full flex justify-center">
           <Calendar 
             onSelectDate={handleDateSelect} 
             selectedDate={selectedDate}
-            availableDates={availableDates}
+            availableDates={getAvailableDates()}
           />
         </div>
       </div>

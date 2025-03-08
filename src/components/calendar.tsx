@@ -9,13 +9,13 @@ interface CalendarProps {
 }
 
 export default function Calendar({ onSelectDate, selectedDate, availableDates }: CalendarProps) {
-  // Use state to store the current date instead of a constant
-  const [currentDate, setCurrentDate] = useState<Date>(new Date(2025, 1, 27)) // February 27, 2025
+  // Use state to store the current date
+  const [currentDate, setCurrentDate] = useState<Date>(new Date())
   const year = currentDate.getFullYear()
 
   // Initialize the component with the current date
   useEffect(() => {
-    setCurrentDate(new Date(2025, 1, 27)) // February 27, 2025
+    setCurrentDate(new Date())
   }, [])
 
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
