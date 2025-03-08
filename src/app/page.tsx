@@ -52,39 +52,6 @@ const formatDisplayDate = (dateString: string, timeString?: string) => {
   return formattedDate;
 };
 
-// Fallback images for when no photos are available
-const fallbackImages = [
-  { 
-    date: "2025-01-01", 
-    src: "https://images.unsplash.com/photo-1467810563316-b5476525c0f9?q=80&w=1000&auto=format&fit=crop",
-    caption: "New Year's Day 2025 - Fireworks celebration",
-    location: "New York, NY",
-    takenAt: "11:59pm",
-    metadata: {
-      aperture: "ƒ/2.8",
-      shutterSpeed: "1/15",
-      iso: "800",
-      focalLength: "24mm"
-    }
-  },
-  { 
-    date: "2025-02-27", 
-    src: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=1000&auto=format&fit=crop", 
-    caption: "Today's photo - Beach day",
-    location: "Malibu, CA",
-    takenAt: "4:30pm",
-    metadata: {
-      aperture: "ƒ/11",
-      shutterSpeed: "1/250",
-      iso: "100",
-      focalLength: "35mm"
-    }
-  },
-];
-
-// Default placeholder image
-const placeholderImage = "https://images.unsplash.com/photo-1533134486753-c833f0ed4866?q=80&w=1000&auto=format&fit=crop";
-
 export default function Home() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -218,12 +185,6 @@ export default function Home() {
       if (forceShowToday && selectedDate === todayDateString) {
         // Create a null state for today
         const today = new Date();
-        const formattedDate = today.toLocaleDateString('en-US', { 
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        });
         
         setCurrentImage({ 
           fileName: "null-state.jpg",
@@ -296,12 +257,6 @@ export default function Home() {
       if (forceShowToday) {
         // Create a null state for today
         const today = new Date();
-        const formattedDate = today.toLocaleDateString('en-US', { 
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        });
         
         setCurrentImage({ 
           fileName: "null-state.jpg",
@@ -333,7 +288,7 @@ export default function Home() {
     // Format the date as M/DD
     try {
       // Parse the date parts directly from the YYYY-MM-DD format to avoid timezone issues
-      const [year, month, day] = currentImage.date.split('-').map(Number);
+      const [, month, day] = currentImage.date.split('-').map(Number);
       return `${month}/${String(day).padStart(2, '0')}`;
     } catch (error) {
       console.error('Error formatting date:', error);
@@ -341,7 +296,8 @@ export default function Home() {
     }
   }, [currentImage, todayDateString]);
 
-  // Function to refresh the photos
+  // Function to refresh the photos (used for debugging)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const refreshPhotos = useCallback(async () => {
     try {
       setLoading(true);
@@ -428,7 +384,7 @@ export default function Home() {
                 </svg>
                 <h3 className="text-xl font-medium text-gray-700 mb-2">No photo yet</h3>
                 <p className="text-gray-500 max-w-md">
-                  Derrick hasn't uploaded a photo for this day yet. Check back later or browse other days using the calendar below.
+                  Derrick hasn&apos;t uploaded a photo for this day yet. Check back later or browse other days using the calendar below.
                 </p>
               </div>
             ) : (
