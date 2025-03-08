@@ -9,6 +9,12 @@ export default function UploadPage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [caption, setCaption] = useState("")
+  const [location, setLocation] = useState("")
+  const [takenAt, setTakenAt] = useState("")
+  const [aperture, setAperture] = useState("")
+  const [shutterSpeed, setShutterSpeed] = useState("")
+  const [iso, setIso] = useState("")
+  const [focalLength, setFocalLength] = useState("")
   const [uploading, setUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -56,6 +62,22 @@ export default function UploadPage() {
       formData.append("image", selectedImage)
       formData.append("date", selectedDate)
       formData.append("caption", caption)
+      
+      // Add new metadata fields
+      if (location) formData.append("location", location)
+      if (takenAt) formData.append("takenAt", takenAt)
+      
+      // Add camera settings
+      const metadata: Record<string, string> = {}
+      if (aperture) metadata.aperture = aperture
+      if (shutterSpeed) metadata.shutterSpeed = shutterSpeed
+      if (iso) metadata.iso = iso
+      if (focalLength) metadata.focalLength = focalLength
+      
+      // Only append metadata if at least one field is filled
+      if (Object.keys(metadata).length > 0) {
+        formData.append("metadata", JSON.stringify(metadata))
+      }
 
       // Send the form data to our API endpoint
       const response = await fetch("/api/upload", {
@@ -83,6 +105,12 @@ export default function UploadPage() {
     setSelectedImage(null)
     setImagePreview(null)
     setCaption("")
+    setLocation("")
+    setTakenAt("")
+    setAperture("")
+    setShutterSpeed("")
+    setIso("")
+    setFocalLength("")
     setSelectedDate(getTodayDate())
     setUploadSuccess(false)
     setError(null)
@@ -160,14 +188,110 @@ export default function UploadPage() {
               <label htmlFor="caption" className="block text-sm font-medium text-gray-700 mb-1">
                 Caption
               </label>
-              <textarea
+              <input
+                type="text"
                 id="caption"
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
-                rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Add a caption for your photo..."
+                placeholder="Image title or description"
               />
+            </div>
+            
+            {/* Location */}
+            <div>
+              <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
+                Location
+              </label>
+              <input
+                type="text"
+                id="location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder="e.g. Big Sur, CA"
+              />
+            </div>
+            
+            {/* Time Taken */}
+            <div>
+              <label htmlFor="takenAt" className="block text-sm font-medium text-gray-700 mb-1">
+                Time Taken
+              </label>
+              <input
+                type="text"
+                id="takenAt"
+                value={takenAt}
+                onChange={(e) => setTakenAt(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder="e.g. 3:21pm"
+              />
+            </div>
+            
+            <div className="border-t border-gray-200 pt-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">Camera Settings (Optional)</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                {/* Aperture */}
+                <div>
+                  <label htmlFor="aperture" className="block text-sm font-medium text-gray-700 mb-1">
+                    Aperture
+                  </label>
+                  <input
+                    type="text"
+                    id="aperture"
+                    value={aperture}
+                    onChange={(e) => setAperture(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g. ƒ/8.0"
+                  />
+                </div>
+                
+                {/* Shutter Speed */}
+                <div>
+                  <label htmlFor="shutterSpeed" className="block text-sm font-medium text-gray-700 mb-1">
+                    Shutter Speed
+                  </label>
+                  <input
+                    type="text"
+                    id="shutterSpeed"
+                    value={shutterSpeed}
+                    onChange={(e) => setShutterSpeed(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g. 1/60"
+                  />
+                </div>
+                
+                {/* ISO */}
+                <div>
+                  <label htmlFor="iso" className="block text-sm font-medium text-gray-700 mb-1">
+                    ISO
+                  </label>
+                  <input
+                    type="text"
+                    id="iso"
+                    value={iso}
+                    onChange={(e) => setIso(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g. 200"
+                  />
+                </div>
+                
+                {/* Focal Length */}
+                <div>
+                  <label htmlFor="focalLength" className="block text-sm font-medium text-gray-700 mb-1">
+                    Focal Length
+                  </label>
+                  <input
+                    type="text"
+                    id="focalLength"
+                    value={focalLength}
+                    onChange={(e) => setFocalLength(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g. 135mm"
+                  />
+                </div>
+              </div>
             </div>
             
             {/* Error Message */}

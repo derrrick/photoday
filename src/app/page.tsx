@@ -12,6 +12,14 @@ interface Photo {
   size: number;
   uploadedAt: string;
   url: string;
+  location?: string;
+  takenAt?: string;
+  metadata?: {
+    aperture?: string;
+    shutterSpeed?: string;
+    iso?: string;
+    focalLength?: string;
+  };
 }
 
 // Helper function to get today's date in YYYY-MM-DD format
@@ -23,17 +31,53 @@ const getTodayDateString = () => {
   return `${year}-${month}-${day}`;
 };
 
+// Helper function to format date for display
+const formatDisplayDate = (dateString: string, timeString?: string) => {
+  if (!dateString) return "";
+  
+  const date = new Date(dateString);
+  const options: Intl.DateTimeFormatOptions = { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  };
+  
+  const formattedDate = date.toLocaleDateString('en-US', options);
+  
+  if (timeString) {
+    return `${formattedDate} @${timeString}`;
+  }
+  
+  return formattedDate;
+};
+
 // Fallback images for when no photos are available
 const fallbackImages = [
   { 
     date: "2025-01-01", 
     src: "https://images.unsplash.com/photo-1467810563316-b5476525c0f9?q=80&w=1000&auto=format&fit=crop",
-    caption: "New Year's Day 2025 - Fireworks celebration" 
+    caption: "New Year's Day 2025 - Fireworks celebration",
+    location: "New York, NY",
+    takenAt: "11:59pm",
+    metadata: {
+      aperture: "ƒ/2.8",
+      shutterSpeed: "1/15",
+      iso: "800",
+      focalLength: "24mm"
+    }
   },
   { 
     date: "2025-02-27", 
     src: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=1000&auto=format&fit=crop", 
-    caption: "Today's photo - Beach day" 
+    caption: "Today's photo - Beach day",
+    location: "Malibu, CA",
+    takenAt: "4:30pm",
+    metadata: {
+      aperture: "ƒ/11",
+      shutterSpeed: "1/250",
+      iso: "100",
+      focalLength: "35mm"
+    }
   },
 ];
 
@@ -44,7 +88,7 @@ export default function Home() {
   
   // Initialize with today's date selected
   const [selectedDate, setSelectedDate] = useState<string | null>(getTodayDateString());
-  const [currentImage, setCurrentImage] = useState<{ src: string; caption: string } | null>(null);
+  const [currentImage, setCurrentImage] = useState<Photo | null>(null);
   
   // Helper function to get available dates (dates that have images)
   const getAvailableDates = useCallback(() => {
@@ -64,26 +108,26 @@ export default function Home() {
     const todayPhoto = photos.find(photo => photo.date === todayDate);
     
     if (todayPhoto) {
-      return { 
-        src: todayPhoto.url, 
-        caption: todayPhoto.caption 
-      };
+      return todayPhoto;
     }
     
     // If no photo for today, get the most recent photo
     if (photos.length > 0) {
       // Photos are already sorted by date (newest first) from the API
-      const latestPhoto = photos[0];
-      return { 
-        src: latestPhoto.url, 
-        caption: latestPhoto.caption 
-      };
+      return photos[0];
     }
     
     // If no photos at all, use a fallback
-    return { 
-      src: fallbackImages[1].src, 
-      caption: fallbackImages[1].caption 
+    return {
+      fileName: "fallback.jpg",
+      date: fallbackImages[1].date,
+      caption: fallbackImages[1].caption,
+      size: 0,
+      uploadedAt: new Date().toISOString(),
+      url: fallbackImages[1].src,
+      location: fallbackImages[1].location,
+      takenAt: fallbackImages[1].takenAt,
+      metadata: fallbackImages[1].metadata
     };
   }, [photos]); // Only depend on photos
   
@@ -150,15 +194,16 @@ export default function Home() {
     if (selectedDate) {
       const photo = photos.find(p => p.date === selectedDate);
       if (photo) {
-        setCurrentImage({ 
-          src: photo.url, 
-          caption: photo.caption 
-        });
+        setCurrentImage(photo);
       } else {
         // If no exact match, set a default or placeholder
         setCurrentImage({ 
-          src: "https://images.unsplash.com/photo-1533134486753-c833f0ed4866?q=80&w=1000&auto=format&fit=crop", 
-          caption: `No photo available for ${selectedDate}` 
+          fileName: "placeholder.jpg",
+          date: selectedDate,
+          caption: `No photo available for ${selectedDate}`,
+          size: 0,
+          uploadedAt: new Date().toISOString(),
+          url: "https://images.unsplash.com/photo-1533134486753-c833f0ed4866?q=80&w=1000&auto=format&fit=crop"
         });
       }
     } else {
@@ -197,6 +242,17 @@ export default function Home() {
     }
   }, [loading, photos, currentImage, getTodayImage]);
 
+  // Function to get the photo index number
+  const getPhotoIndex = useCallback(() => {
+    if (!currentImage || !currentImage.date) return "01";
+    
+    const index = photos.findIndex(p => p.date === currentImage.date);
+    if (index === -1) return "01";
+    
+    // Format as two digits with leading zero
+    return String(index + 1).padStart(2, "0");
+  }, [currentImage, photos]);
+
   return (
     <main className="flex min-h-screen flex-col items-center bg-white py-12 px-4">
       <div className="max-w-[800px] w-full">
@@ -210,6 +266,24 @@ export default function Home() {
           </div>
         ) : (
           <div className="relative flex flex-col items-center">
+            {/* Photo metadata header */}
+            {currentImage && (
+              <div className="w-full pb-4">
+                <h3 className="font-medium text-sm text-black pb-2 pt-4 m-0">
+                  <span className="font-bold">{getPhotoIndex()} — {currentImage.caption}</span>
+                  {currentImage.location && (
+                    <span className="text-gray-500 ml-4">
+                      📍 {currentImage.location} {currentImage.date && currentImage.takenAt && (
+                        <>
+                          &nbsp;•&nbsp; {formatDisplayDate(currentImage.date, currentImage.takenAt)}
+                        </>
+                      )}
+                    </span>
+                  )}
+                </h3>
+              </div>
+            )}
+            
             {/* Left navigation arrow */}
             <button 
               onClick={handlePrevious}
@@ -224,7 +298,7 @@ export default function Home() {
             
             {currentImage && (
               <Image
-                src={currentImage.src}
+                src={currentImage.url}
                 width={800}
                 height={450}
                 alt={currentImage.caption}
@@ -245,9 +319,44 @@ export default function Home() {
               </svg>
             </button>
             
-            <p className="mt-4 text-center text-gray-700 text-lg italic">
-              {currentImage?.caption || "Loading..."}
-            </p>
+            {/* Camera metadata footer */}
+            {currentImage && currentImage.metadata && (
+              <h3 className="font-normal text-sm text-gray-500 mt-2 mb-0 w-full">
+                {currentImage.metadata.aperture && (
+                  <span>
+                    <span className="font-bold">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <line x1="12" y1="2" x2="12" y2="4"></line>
+                        <line x1="12" y1="20" x2="12" y2="22"></line>
+                        <line x1="2" y1="12" x2="4" y2="12"></line>
+                        <line x1="20" y1="12" x2="22" y2="12"></line>
+                      </svg>
+                      Aperture:
+                    </span> {currentImage.metadata.aperture} &nbsp; &nbsp; &nbsp;
+                  </span>
+                )}
+                
+                {currentImage.metadata.shutterSpeed && (
+                  <span>
+                    <span className="font-bold">Shutter:</span> {currentImage.metadata.shutterSpeed} &nbsp; &nbsp; &nbsp;
+                  </span>
+                )}
+                
+                {currentImage.metadata.iso && (
+                  <span>
+                    <span className="font-bold">ISO:</span> {currentImage.metadata.iso} &nbsp; &nbsp; &nbsp;
+                  </span>
+                )}
+                
+                {currentImage.metadata.focalLength && (
+                  <span>
+                    <span className="font-bold">Focal length:</span> {currentImage.metadata.focalLength}
+                  </span>
+                )}
+              </h3>
+            )}
           </div>
         )}
 

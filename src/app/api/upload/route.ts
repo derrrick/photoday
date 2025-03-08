@@ -10,6 +10,15 @@ interface PhotoMetadata {
   caption: string;
   size: number;
   uploadedAt: string;
+  url: string;
+  location?: string;
+  takenAt?: string;
+  metadata?: {
+    aperture?: string;
+    shutterSpeed?: string;
+    iso?: string;
+    focalLength?: string;
+  };
 }
 
 // Path to the metadata JSON file
@@ -40,6 +49,9 @@ export async function POST(request: NextRequest) {
     const image = formData.get('image') as File;
     const date = formData.get('date') as string;
     const caption = formData.get('caption') as string;
+    const location = formData.get('location') as string | null;
+    const takenAt = formData.get('takenAt') as string | null;
+    const metadataStr = formData.get('metadata') as string | null;
 
     if (!image || !date) {
       return NextResponse.json(
@@ -63,6 +75,16 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await image.arrayBuffer());
     await writeFile(filePath, buffer);
 
+    // Parse camera metadata if provided
+    let cameraMetadata = undefined;
+    if (metadataStr) {
+      try {
+        cameraMetadata = JSON.parse(metadataStr);
+      } catch (e) {
+        console.error('Error parsing metadata:', e);
+      }
+    }
+
     // Create metadata for the uploaded photo
     const photoMetadata: PhotoMetadata = {
       fileName,
@@ -70,7 +92,13 @@ export async function POST(request: NextRequest) {
       caption,
       size: image.size,
       uploadedAt: new Date().toISOString(),
+      url: `/uploads/${fileName}`,
     };
+
+    // Add optional fields if provided
+    if (location) photoMetadata.location = location;
+    if (takenAt) photoMetadata.takenAt = takenAt;
+    if (cameraMetadata) photoMetadata.metadata = cameraMetadata;
 
     // Read existing metadata, add the new entry, and write back
     const existingMetadata = await readMetadata();
@@ -83,6 +111,7 @@ export async function POST(request: NextRequest) {
       filePath: `/uploads/${fileName}`,
       date,
       caption,
+      metadata: photoMetadata,
     });
   } catch (error) {
     console.error('Error uploading file:', error);

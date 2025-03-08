@@ -10,6 +10,15 @@ interface PhotoMetadata {
   caption: string;
   size: number;
   uploadedAt: string;
+  url: string;
+  location?: string;
+  takenAt?: string;
+  metadata?: {
+    aperture?: string;
+    shutterSpeed?: string;
+    iso?: string;
+    focalLength?: string;
+  };
 }
 
 // Path to the metadata JSON file
@@ -40,10 +49,7 @@ export async function GET() {
     
     return NextResponse.json({
       success: true,
-      photos: metadata.map((photo: PhotoMetadata) => ({
-        ...photo,
-        url: `/uploads/${photo.fileName}`,
-      })),
+      photos: metadata,
     });
   } catch (error) {
     console.error('Error fetching photos:', error);
