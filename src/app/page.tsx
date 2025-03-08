@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Image from "next/image";
+import { format, parse, addDays, subDays } from 'date-fns';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { PhotoData } from '@/types';
 import Calendar from "@/components/calendar";
-import { parse } from "date-fns";
 
 // Interface for photo data
 interface Photo {
