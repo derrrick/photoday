@@ -5,9 +5,10 @@ import { useEffect, useState } from "react"
 interface CalendarProps {
   onSelectDate: (date: string) => void
   selectedDate: string | null
+  availableDates: string[]
 }
 
-export default function Calendar({ onSelectDate, selectedDate }: CalendarProps) {
+export default function Calendar({ onSelectDate, selectedDate, availableDates }: CalendarProps) {
   // Use state to store the current date instead of a constant
   const [currentDate, setCurrentDate] = useState<Date>(new Date(2025, 1, 27)) // February 27, 2025
   const year = currentDate.getFullYear()
@@ -27,6 +28,10 @@ export default function Calendar({ onSelectDate, selectedDate }: CalendarProps) 
     return date <= currentDate
   }
 
+  const hasPhoto = (dateString: string) => {
+    return availableDates.includes(dateString)
+  }
+
   const renderMonth = (monthIndex: number) => {
     const daysInMonth = new Date(year, monthIndex + 1, 0).getDate()
     const firstDayOfMonth = new Date(year, monthIndex, 1).getDay()
@@ -39,9 +44,10 @@ export default function Calendar({ onSelectDate, selectedDate }: CalendarProps) 
     for (let d = 1; d <= daysInMonth; d++) {
       const date = new Date(year, monthIndex, d)
       const dateString = formatDate(year, monthIndex, d)
-      const clickable = isClickable(date)
+      const clickable = isClickable(date) && hasPhoto(dateString)
       const isSelected = dateString === selectedDate
       const isToday = date.toDateString() === currentDate.toDateString()
+      const isMissing = isClickable(date) && !hasPhoto(dateString)
 
       days.push(
         <button
@@ -53,12 +59,13 @@ export default function Calendar({ onSelectDate, selectedDate }: CalendarProps) 
           <div
             className={`text-lg relative flex items-center justify-center w-full h-full
               ${isSelected ? "text-red-500 font-bold" : ""}
-              ${isToday ? "text-red-500" : ""}
-              ${!clickable ? "text-gray-300" : isSelected || isToday ? "" : "text-black"}
+              ${isToday && !isMissing ? "text-red-500" : ""}
+              ${isMissing ? "text-gray-400" : ""}
+              ${!isClickable(date) ? "text-gray-300" : isSelected || (isToday && !isMissing) ? "" : isMissing ? "" : "text-black"}
             `}
           >
-            {clickable ? "●" : "○"}
-            {isToday && !isSelected && (
+            {isMissing ? "●" : clickable ? "●" : "○"}
+            {isToday && !isSelected && !isMissing && (
               <span className="absolute w-[1.2em] h-[1.2em] border-2 border-red-500 rounded-full pointer-events-none"></span>
             )}
             {isSelected && (

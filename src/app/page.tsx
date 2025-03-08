@@ -27,6 +27,32 @@ const mockImages = [
     src: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=1000&auto=format&fit=crop", 
     caption: "Valentine's Day roses" 
   },
+  // Note: Missing February 20 and 21
+  { 
+    date: "2025-02-22", 
+    src: "https://images.unsplash.com/photo-1494783367193-149034c05e8f?q=80&w=1000&auto=format&fit=crop", 
+    caption: "Weekend getaway" 
+  },
+  { 
+    date: "2025-02-23", 
+    src: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?q=80&w=1000&auto=format&fit=crop", 
+    caption: "Spring flowers" 
+  },
+  { 
+    date: "2025-02-24", 
+    src: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=1000&auto=format&fit=crop", 
+    caption: "Monday at the beach" 
+  },
+  { 
+    date: "2025-02-25", 
+    src: "https://images.unsplash.com/photo-1486299267070-83823f5448dd?q=80&w=1000&auto=format&fit=crop", 
+    caption: "City lights" 
+  },
+  { 
+    date: "2025-02-26", 
+    src: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?q=80&w=1000&auto=format&fit=crop", 
+    caption: "Sunset by the lake" 
+  },
   { 
     date: "2025-02-27", 
     src: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=1000&auto=format&fit=crop", 
@@ -37,6 +63,11 @@ const mockImages = [
 // Helper function to get available dates (dates that have images)
 const getAvailableDates = () => {
   return mockImages.map(img => img.date);
+};
+
+// Helper function to check if a date has a photo
+const hasPhotoForDate = (dateString: string) => {
+  return mockImages.some(img => img.date === dateString);
 };
 
 // Helper function to get today's date in our format
@@ -99,7 +130,10 @@ export default function Home() {
   }, [selectedDate]);
 
   const handleDateSelect = (date: string) => {
-    setSelectedDate(date);
+    // Only select dates that have photos
+    if (hasPhotoForDate(date)) {
+      setSelectedDate(date);
+    }
   };
   
   const handlePrevious = () => {
@@ -161,7 +195,11 @@ export default function Home() {
         </div>
 
         <div className="mt-[200px] w-full flex justify-center">
-          <Calendar onSelectDate={handleDateSelect} selectedDate={selectedDate} />
+          <Calendar 
+            onSelectDate={handleDateSelect} 
+            selectedDate={selectedDate}
+            availableDates={availableDates}
+          />
         </div>
       </div>
     </main>
