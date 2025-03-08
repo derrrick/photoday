@@ -1,13 +1,27 @@
 "use client"
 
+import { useEffect, useState } from "react"
+
 interface CalendarProps {
   onSelectDate: (date: string) => void
   selectedDate: string | null
 }
 
 export default function Calendar({ onSelectDate, selectedDate }: CalendarProps) {
-  const currentDate = new Date(2025, 1, 27) // February 27, 2025
+  // Use state to store the current date instead of a constant
+  const [currentDate, setCurrentDate] = useState<Date>(new Date(2025, 1, 27)) // February 27, 2025
   const year = currentDate.getFullYear()
+
+  // Initialize the component with the current date
+  useEffect(() => {
+    setCurrentDate(new Date(2025, 1, 27)) // February 27, 2025
+    
+    // If no date is selected initially, select today's date
+    if (!selectedDate) {
+      const todayString = formatDate(2025, 1, 27) // February 27, 2025
+      onSelectDate(todayString)
+    }
+  }, [])
 
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -44,13 +58,17 @@ export default function Calendar({ onSelectDate, selectedDate }: CalendarProps) 
         >
           <div
             className={`text-lg relative flex items-center justify-center w-full h-full
-              ${isSelected ? "text-red-500" : ""}
-              ${!clickable ? "text-gray-300" : "text-black"}
+              ${isSelected ? "text-red-500 font-bold" : ""}
+              ${isToday ? "text-red-500" : ""}
+              ${!clickable ? "text-gray-300" : isSelected || isToday ? "" : "text-black"}
             `}
           >
-            <span className="absolute">{clickable ? "●" : "○"}</span>
-            {isToday && (
+            {clickable ? "●" : "○"}
+            {isToday && !isSelected && (
               <span className="absolute w-[1.2em] h-[1.2em] border-2 border-red-500 rounded-full pointer-events-none"></span>
+            )}
+            {isSelected && (
+              <span className="absolute w-[1.2em] h-[1.2em] bg-red-500 bg-opacity-20 rounded-full pointer-events-none"></span>
             )}
           </div>
         </button>,
