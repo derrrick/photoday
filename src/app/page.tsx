@@ -7,11 +7,31 @@ import { Button } from "@/components/ui/button";
 
 // Mock image database - in a real app, this would come from an API or database
 const mockImages = [
-  { date: "2025-01-01", src: "/placeholder.svg", caption: "New Year's Day 2025" },
-  { date: "2025-01-15", src: "/placeholder.svg", caption: "Mid-January snapshot" },
-  { date: "2025-01-30", src: "/placeholder.svg", caption: "End of January" },
-  { date: "2025-02-14", src: "/placeholder.svg", caption: "Valentine's Day" },
-  { date: "2025-02-27", src: "/placeholder.svg", caption: "Today's photo" },
+  { 
+    date: "2025-01-01", 
+    src: "https://images.unsplash.com/photo-1467810563316-b5476525c0f9?q=80&w=1000&auto=format&fit=crop",
+    caption: "New Year's Day 2025 - Fireworks celebration" 
+  },
+  { 
+    date: "2025-01-15", 
+    src: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?q=80&w=1000&auto=format&fit=crop", 
+    caption: "Mid-January forest walk" 
+  },
+  { 
+    date: "2025-01-30", 
+    src: "https://images.unsplash.com/photo-1480497490787-505ec076689f?q=80&w=1000&auto=format&fit=crop", 
+    caption: "End of January sunset" 
+  },
+  { 
+    date: "2025-02-14", 
+    src: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=1000&auto=format&fit=crop", 
+    caption: "Valentine's Day roses" 
+  },
+  { 
+    date: "2025-02-27", 
+    src: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=1000&auto=format&fit=crop", 
+    caption: "Today's photo - Beach day" 
+  },
 ];
 
 // Helper function to get available dates (dates that have images)
@@ -55,7 +75,10 @@ export default function Home() {
         setCurrentImage({ src: image.src, caption: image.caption });
       } else {
         // If no exact match, set a default or placeholder
-        setCurrentImage({ src: "/placeholder.svg", caption: `No photo available for ${selectedDate}` });
+        setCurrentImage({ 
+          src: "https://images.unsplash.com/photo-1533134486753-c833f0ed4866?q=80&w=1000&auto=format&fit=crop", 
+          caption: `No photo available for ${selectedDate}` 
+        });
       }
     } else {
       setCurrentImage(null);
@@ -99,7 +122,7 @@ export default function Home() {
           </button>
           
           <Image
-            src={currentImage?.src || "/placeholder.svg"}
+            src={currentImage?.src || "https://images.unsplash.com/photo-1452587925148-ce544e77e70d?q=80&w=1000&auto=format&fit=crop"}
             width={800}
             height={450}
             alt={currentImage?.caption || "Select a date to view a photo"}
