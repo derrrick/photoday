@@ -198,7 +198,7 @@ export default function Home() {
   }, [loading, photos, currentImage, getTodayImage]); // Added currentImage and getTodayImage to dependencies
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-white py-24 px-4">
+    <main className="flex min-h-screen flex-col items-center bg-white py-12 px-4">
       <div className="max-w-[800px] w-full">
         {loading ? (
           <div className="flex justify-center items-center h-[450px]">

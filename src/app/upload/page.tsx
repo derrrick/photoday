@@ -92,7 +92,7 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Upload Daily Photo</h1>
         
