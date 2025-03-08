@@ -9,13 +9,17 @@ interface CalendarProps {
 }
 
 export default function Calendar({ onSelectDate, selectedDate, availableDates }: CalendarProps) {
-  // Use state to store the current date
-  const [currentDate, setCurrentDate] = useState<Date>(new Date())
+  // Use state to store the current date in Pacific Time
+  const [currentDate, setCurrentDate] = useState<Date>(
+    new Date(new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }))
+  )
   const year = currentDate.getFullYear()
 
-  // Initialize the component with the current date
+  // Initialize the component with the current date in Pacific Time
   useEffect(() => {
-    setCurrentDate(new Date())
+    const now = new Date();
+    const pstDate = new Date(now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+    setCurrentDate(pstDate);
   }, [])
 
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -25,11 +29,11 @@ export default function Calendar({ onSelectDate, selectedDate, availableDates }:
   }
 
   const isClickable = (date: Date) => {
-    return date <= currentDate
+    return date <= currentDate;
   }
 
   const hasPhoto = (dateString: string) => {
-    return availableDates.includes(dateString)
+    return availableDates.includes(dateString);
   }
 
   const renderMonth = (monthIndex: number) => {

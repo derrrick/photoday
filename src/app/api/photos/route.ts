@@ -51,6 +51,7 @@ export async function GET() {
       {
         success: true,
         photos: metadata,
+        timestamp: new Date().toISOString(), // Add a timestamp to prevent caching
       },
       {
         headers: {

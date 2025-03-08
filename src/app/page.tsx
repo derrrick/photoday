@@ -23,24 +23,35 @@ interface Photo {
   isNullState?: boolean;
 }
 
-// Helper function to get today's date in YYYY-MM-DD format
+// Helper function to get today's date in YYYY-MM-DD format using Pacific Time
 const getTodayDateString = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
+  // Create a date object for the current time
+  const now = new Date();
+  
+  // Convert to Pacific Time
+  const pstDate = new Date(now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+  
+  // Get the date components
+  const year = pstDate.getFullYear();
+  const month = String(pstDate.getMonth() + 1).padStart(2, "0");
+  const day = String(pstDate.getDate()).padStart(2, "0");
+  
   return `${year}-${month}-${day}`;
 };
 
-// Helper function to format date for display
+// Helper function to format date for display using Pacific Time
 const formatDisplayDate = (dateString: string, timeString?: string) => {
   if (!dateString) return "";
   
+  // Create a date object from the date string
   const date = new Date(dateString);
+  
+  // Format the date in Pacific Time
   const options: Intl.DateTimeFormatOptions = { 
     year: 'numeric', 
     month: 'long', 
-    day: 'numeric' 
+    day: 'numeric',
+    timeZone: 'America/Los_Angeles'
   };
   
   const formattedDate = date.toLocaleDateString('en-US', options);
@@ -92,23 +103,17 @@ export default function Home() {
     
     // If no photos at all, create a null state for today
     const today = new Date();
-    const formattedDate = today.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
     
     return {
       fileName: "null-state.jpg",
       date: todayDate,
-      caption: `No photo for ${formattedDate}`,
+      caption: `No photo for ${formatDisplayDate(todayDate)}`,
       size: 0,
       uploadedAt: new Date().toISOString(),
       url: "", // Empty URL to trigger null state
       isNullState: true // Flag to identify null state
     };
-  }, [photos]); // Only depend on photos
+  }, [photos, formatDisplayDate]);
   
   // Fetch photos from the API
   useEffect(() => {
@@ -183,6 +188,13 @@ export default function Home() {
     if (selectedDate) {
       // If we're forcing today's date and it's today
       if (forceShowToday && selectedDate === todayDateString) {
+        // Check if we have a photo for today
+        const todayPhoto = photos.find(p => p.date === todayDateString);
+        if (todayPhoto) {
+          setCurrentImage(todayPhoto);
+          return;
+        }
+        
         // Create a null state for today
         const today = new Date();
         
@@ -204,17 +216,11 @@ export default function Home() {
       } else {
         // If no exact match, set a null state
         const selectedDateObj = new Date(selectedDate);
-        const formattedDate = selectedDateObj.toLocaleDateString('en-US', { 
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        });
         
         setCurrentImage({ 
           fileName: "null-state.jpg",
           date: selectedDate,
-          caption: `No photo available for ${formattedDate}`,
+          caption: `No photo available for ${formatDisplayDate(selectedDate)}`,
           size: 0,
           uploadedAt: new Date().toISOString(),
           url: "", // Empty URL to trigger null state
@@ -225,7 +231,7 @@ export default function Home() {
       // If no date is selected, show today's photo
       setCurrentImage(getTodayImage());
     }
-  }, [selectedDate, photos, getTodayImage, forceShowToday, todayDateString]);
+  }, [selectedDate, photos, getTodayImage, forceShowToday, todayDateString, formatDisplayDate]);
 
   const handleDateSelect = useCallback((date: string) => {
     // Allow selecting today's date even if there's no photo
@@ -255,6 +261,13 @@ export default function Home() {
   useEffect(() => {
     if (!loading && !currentImage) {
       if (forceShowToday) {
+        // Check if we have a photo for today
+        const todayPhoto = photos.find(p => p.date === todayDateString);
+        if (todayPhoto) {
+          setCurrentImage(todayPhoto);
+          return;
+        }
+        
         // Create a null state for today
         const today = new Date();
         
@@ -279,9 +292,11 @@ export default function Home() {
     
     // For null state of today, ensure we show today's date
     if (currentImage.isNullState && currentImage.date === todayDateString) {
-      const today = new Date();
-      const month = today.getMonth() + 1; // getMonth() returns 0-11
-      const day = today.getDate();
+      // Get today's date in Pacific Time
+      const now = new Date();
+      const pstDate = new Date(now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+      const month = pstDate.getMonth() + 1; // getMonth() returns 0-11
+      const day = pstDate.getDate();
       return `${month}/${String(day).padStart(2, '0')}`;
     }
     

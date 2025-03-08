@@ -43,6 +43,12 @@ async function writeMetadata(metadata: PhotoMetadata[]): Promise<void> {
   await writeFile(metadataFilePath, JSON.stringify(metadata, null, 2), 'utf-8');
 }
 
+// Helper function to get current date and time in Pacific Time
+function getPacificDateTime() {
+  const now = new Date();
+  return new Date(now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -118,7 +124,7 @@ export async function POST(request: NextRequest) {
       date,
       caption,
       size: image.size,
-      uploadedAt: new Date().toISOString(),
+      uploadedAt: getPacificDateTime().toISOString(),
       url: `/uploads/${fileName}`,
     };
 
