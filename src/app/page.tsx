@@ -39,9 +39,21 @@ const getAvailableDates = () => {
   return mockImages.map(img => img.date);
 };
 
+// Helper function to get today's date in our format
+const getTodayDateString = () => {
+  return "2025-02-27"; // February 27, 2025 (matching the calendar component)
+};
+
+// Helper function to get today's image
+const getTodayImage = () => {
+  const todayDate = getTodayDateString();
+  return mockImages.find(img => img.date === todayDate) || mockImages[mockImages.length - 1];
+};
+
 export default function Home() {
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [currentImage, setCurrentImage] = useState<{ src: string; caption: string } | null>(null);
+  // Initialize with today's date selected
+  const [selectedDate, setSelectedDate] = useState<string | null>(getTodayDateString());
+  const [currentImage, setCurrentImage] = useState<{ src: string; caption: string } | null>(getTodayImage());
   const availableDates = getAvailableDates();
 
   // Function to find the nearest available date
@@ -81,7 +93,8 @@ export default function Home() {
         });
       }
     } else {
-      setCurrentImage(null);
+      // If no date is selected, show today's photo
+      setCurrentImage(getTodayImage());
     }
   }, [selectedDate]);
 
@@ -122,10 +135,10 @@ export default function Home() {
           </button>
           
           <Image
-            src={currentImage?.src || "https://images.unsplash.com/photo-1452587925148-ce544e77e70d?q=80&w=1000&auto=format&fit=crop"}
+            src={currentImage?.src || getTodayImage().src}
             width={800}
             height={450}
-            alt={currentImage?.caption || "Select a date to view a photo"}
+            alt={currentImage?.caption || getTodayImage().caption}
             className="w-full h-auto rounded-lg shadow-md"
             priority
           />
@@ -143,7 +156,7 @@ export default function Home() {
           </button>
           
           <p className="mt-4 text-center text-gray-700 text-lg italic">
-            {currentImage?.caption || "Select a date to view a photo"}
+            {currentImage?.caption || getTodayImage().caption}
           </p>
         </div>
 
