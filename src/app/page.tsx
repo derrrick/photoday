@@ -44,7 +44,7 @@ const getTodayDateString = () => {
 };
 
 // Helper function to format date for display using Pacific Time
-const formatDisplayDate = (dateString: string, timeString?: string) => {
+const formatDisplayDate = (dateString: string | null, timeString?: string) => {
   if (!dateString) return "";
   
   // Create a date object from the date string
