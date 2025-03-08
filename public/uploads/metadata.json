@@ -1,9 +1,50 @@
 [
   {
+    "fileName": "2025-03-07-1741399507372.png",
+    "date": "2025-03-05",
+    "caption": "Cabrillo highway with Jess",
+    "size": 2459000,
+    "uploadedAt": "2025-03-08T02:05:05.373Z",
+    "url": "/uploads/2025-03-07-1741399507372.png",
+    "location": "Big Sur, CA",
+    "takenAt": "2:21pm",
+    "metadata": {
+      "aperture": "f4",
+      "shutterSpeed": "1/250",
+      "iso": "200",
+      "focalLength": "85mm"
+    }
+  },
+  {
     "fileName": "2025-03-07-1741394574622.png",
-    "date": "2025-03-07",
-    "caption": "Point lobos with Jess",
+    "date": "2025-03-06",
+    "caption": "Sunset at Point Lobos",
     "size": 1685315,
-    "uploadedAt": "2025-03-08T00:42:54.623Z"
+    "uploadedAt": "2025-03-07T18:42:54.623Z",
+    "url": "/uploads/2025-03-07-1741394574622.png",
+    "location": "Point Lobos, CA",
+    "takenAt": "5:45pm",
+    "metadata": {
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/125",
+      "iso": "400",
+      "focalLength": "50mm"
+    }
+  },
+  {
+    "fileName": "2025-03-07-1741409421272.jpg",
+    "date": "2025-03-07",
+    "caption": "Rusty truck on the wharf",
+    "size": 623218,
+    "uploadedAt": "2025-03-08T04:50:21.274Z",
+    "url": "/uploads/2025-03-07-1741409421272.jpg",
+    "location": "Monterey, CA",
+    "takenAt": "5:22pm",
+    "metadata": {
+      "aperture": "f/8",
+      "shutterSpeed": "1/60",
+      "iso": "200",
+      "focalLength": "50mm"
+    }
   }
 ]

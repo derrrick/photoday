@@ -14,24 +14,30 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PhotoDay - One Photo Every Day",
-  description: "A personal project to capture one photo every day",
-  keywords: ["photos", "daily photo", "personal project", "photo journal"],
-  authors: [{ name: "Derrick" }],
-  creator: "Derrick",
-  publisher: "PhotoDay",
+  title: "Schippert Photography - One Photo Every Day",
+  description: "A personal photography project by Schippert",
+  keywords: ["photos", "daily photo", "Schippert", "photography", "photo journal"],
+  authors: [{ name: "Derrick Schippert" }],
+  creator: "Derrick Schippert",
+  publisher: "Schippert Photography",
+  icons: {
+    icon: [
+      { url: '/images/favicon.svg', type: 'image/svg+xml' },
+      { url: '/images/favicon.ico', sizes: 'any' }
+    ]
+  },
   openGraph: {
-    title: "PhotoDay - One Photo Every Day",
-    description: "A personal project to capture one photo every day",
+    title: "Schippert Photography - One Photo Every Day",
+    description: "A personal photography project by Schippert",
     url: "https://photoday.vercel.app",
-    siteName: "PhotoDay",
+    siteName: "Schippert Photography",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "PhotoDay - One Photo Every Day",
-    description: "A personal project to capture one photo every day",
+    title: "Schippert Photography - One Photo Every Day",
+    description: "A personal photography project by Schippert",
   },
 };
 
@@ -42,11 +48,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
+      <head>
+        <link rel="icon" href="/images/favicon.svg" type="image/svg+xml" />
+        <link rel="alternate icon" href="/images/favicon.ico" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-white text-gray-900`}
       >
         <Header />
-        {children}
+        <main className="flex-grow">
+          {children}
+        </main>
       </body>
     </html>
   );

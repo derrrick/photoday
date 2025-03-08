@@ -47,10 +47,19 @@ export async function GET() {
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
     
-    return NextResponse.json({
-      success: true,
-      photos: metadata,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        photos: metadata,
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error fetching photos:', error);
     return NextResponse.json(

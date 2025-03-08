@@ -44,10 +44,12 @@ export default function Calendar({ onSelectDate, selectedDate, availableDates }:
     for (let d = 1; d <= daysInMonth; d++) {
       const date = new Date(year, monthIndex, d)
       const dateString = formatDate(year, monthIndex, d)
-      const clickable = isClickable(date) && hasPhoto(dateString)
-      const isSelected = dateString === selectedDate
       const isToday = date.toDateString() === currentDate.toDateString()
-      const isMissing = isClickable(date) && !hasPhoto(dateString)
+      const hasPhotoForDay = hasPhoto(dateString)
+      // Make today clickable even if there's no photo
+      const clickable = isClickable(date) && (hasPhotoForDay || isToday)
+      const isSelected = dateString === selectedDate
+      const isMissing = isClickable(date) && !hasPhotoForDay
 
       days.push(
         <button
@@ -60,11 +62,11 @@ export default function Calendar({ onSelectDate, selectedDate, availableDates }:
             className={`text-lg relative flex items-center justify-center w-full h-full
               ${isSelected ? "text-red-500 font-bold" : ""}
               ${isToday && !isMissing ? "text-red-500" : ""}
-              ${isMissing ? "text-gray-400" : ""}
-              ${!isClickable(date) ? "text-gray-300" : isSelected || (isToday && !isMissing) ? "" : isMissing ? "" : "text-black"}
+              ${isMissing && !isToday ? "text-gray-400" : ""}
+              ${!isClickable(date) ? "text-gray-300" : isSelected || (isToday && !isMissing) ? "" : isMissing && !isToday ? "" : "text-black"}
             `}
           >
-            {isMissing ? "●" : clickable ? "●" : "○"}
+            {isMissing && !isToday ? "●" : clickable ? "●" : "○"}
             {isToday && !isSelected && !isMissing && (
               <span className="absolute w-[1.2em] h-[1.2em] border-2 border-red-500 rounded-full pointer-events-none"></span>
             )}

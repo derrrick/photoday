@@ -17,6 +17,7 @@ export default function UploadPage() {
   const [focalLength, setFocalLength] = useState("")
   const [uploading, setUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
+  const [replacedPhoto, setReplacedPhoto] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -27,6 +28,13 @@ export default function UploadPage() {
     const month = String(today.getMonth() + 1).padStart(2, "0")
     const day = String(today.getDate()).padStart(2, "0")
     return `${year}-${month}-${day}`
+  }
+
+  // Get day of week for a date
+  const getDayOfWeek = (dateString: string) => {
+    const date = new Date(dateString)
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    return days[date.getDay()]
   }
 
   const [selectedDate, setSelectedDate] = useState(getTodayDate())
@@ -93,6 +101,7 @@ export default function UploadPage() {
 
       console.log("Upload successful!", data)
       setUploadSuccess(true)
+      setReplacedPhoto(data.replaced || false)
       setUploading(false)
     } catch (err) {
       console.error("Upload failed:", err)
@@ -113,6 +122,7 @@ export default function UploadPage() {
     setFocalLength("")
     setSelectedDate(getTodayDate())
     setUploadSuccess(false)
+    setReplacedPhoto(false)
     setError(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
@@ -127,7 +137,10 @@ export default function UploadPage() {
         {uploadSuccess ? (
           <div className="text-center">
             <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
-              Photo uploaded successfully!
+              {replacedPhoto 
+                ? "Photo replaced successfully! The previous photo for this date has been deleted."
+                : "Photo uploaded successfully!"
+              }
             </div>
             <div className="flex flex-col space-y-4">
               <Button onClick={resetForm}>Upload Another Photo</Button>
@@ -143,14 +156,21 @@ export default function UploadPage() {
               <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
                 Date
               </label>
-              <input
-                type="date"
-                id="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                max={getTodayDate()} // Prevent selecting future dates
-              />
+              <div>
+                <input
+                  type="date"
+                  id="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  max={getTodayDate()} // Prevent selecting future dates
+                />
+                {selectedDate && (
+                  <p className="mt-1 text-sm text-gray-500">
+                    You are uploading a photo for <span className="font-medium">{getDayOfWeek(selectedDate)}</span>
+                  </p>
+                )}
+              </div>
             </div>
             
             {/* Image Upload */}

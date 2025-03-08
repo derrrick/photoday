@@ -20,6 +20,7 @@ interface Photo {
     iso?: string;
     focalLength?: string;
   };
+  isNullState?: boolean;
 }
 
 // Helper function to get today's date in YYYY-MM-DD format
@@ -81,14 +82,19 @@ const fallbackImages = [
   },
 ];
 
+// Default placeholder image
+const placeholderImage = "https://images.unsplash.com/photo-1533134486753-c833f0ed4866?q=80&w=1000&auto=format&fit=crop";
+
 export default function Home() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Initialize with today's date selected
-  const [selectedDate, setSelectedDate] = useState<string | null>(getTodayDateString());
+  // Initialize with today's date selected, even if there's no photo for today
+  const todayDateString = getTodayDateString();
+  const [selectedDate, setSelectedDate] = useState<string | null>(todayDateString);
   const [currentImage, setCurrentImage] = useState<Photo | null>(null);
+  const [forceShowToday, setForceShowToday] = useState(true); // Flag to force showing today's null state
   
   // Helper function to get available dates (dates that have images)
   const getAvailableDates = useCallback(() => {
@@ -117,17 +123,23 @@ export default function Home() {
       return photos[0];
     }
     
-    // If no photos at all, use a fallback
+    // If no photos at all, create a null state for today
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    
     return {
-      fileName: "fallback.jpg",
-      date: fallbackImages[1].date,
-      caption: fallbackImages[1].caption,
+      fileName: "null-state.jpg",
+      date: todayDate,
+      caption: `No photo for ${formattedDate}`,
       size: 0,
       uploadedAt: new Date().toISOString(),
-      url: fallbackImages[1].src,
-      location: fallbackImages[1].location,
-      takenAt: fallbackImages[1].takenAt,
-      metadata: fallbackImages[1].metadata
+      url: "", // Empty URL to trigger null state
+      isNullState: true // Flag to identify null state
     };
   }, [photos]); // Only depend on photos
   
@@ -136,13 +148,23 @@ export default function Home() {
     const fetchPhotos = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/photos');
+        // Add a timestamp to prevent caching
+        const timestamp = new Date().getTime();
+        const response = await fetch(`/api/photos?t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        });
         
         if (!response.ok) {
           throw new Error('Failed to fetch photos');
         }
         
         const data = await response.json();
+        console.log('Fetched photos:', data.photos);
         
         if (data.success && data.photos) {
           setPhotos(data.photos);
@@ -186,38 +208,71 @@ export default function Home() {
 
   // Load image when selected date changes or photos are loaded
   useEffect(() => {
-    if (photos.length === 0) {
-      // If no photos loaded yet, don't update the current image
+    if (photos.length === 0 && !forceShowToday) {
+      // If no photos loaded yet and not forcing today, don't update the current image
       return;
     }
     
     if (selectedDate) {
+      // If we're forcing today's date and it's today
+      if (forceShowToday && selectedDate === todayDateString) {
+        // Create a null state for today
+        const today = new Date();
+        const formattedDate = today.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+        
+        setCurrentImage({ 
+          fileName: "null-state.jpg",
+          date: todayDateString,
+          caption: "No photo uploaded yet for today",
+          size: 0,
+          uploadedAt: new Date().toISOString(),
+          url: "", // Empty URL to trigger null state
+          isNullState: true // Flag to identify null state
+        });
+        return;
+      }
+      
       const photo = photos.find(p => p.date === selectedDate);
       if (photo) {
         setCurrentImage(photo);
       } else {
-        // If no exact match, set a default or placeholder
+        // If no exact match, set a null state
+        const selectedDateObj = new Date(selectedDate);
+        const formattedDate = selectedDateObj.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+        
         setCurrentImage({ 
-          fileName: "placeholder.jpg",
+          fileName: "null-state.jpg",
           date: selectedDate,
-          caption: `No photo available for ${selectedDate}`,
+          caption: `No photo available for ${formattedDate}`,
           size: 0,
           uploadedAt: new Date().toISOString(),
-          url: "https://images.unsplash.com/photo-1533134486753-c833f0ed4866?q=80&w=1000&auto=format&fit=crop"
+          url: "", // Empty URL to trigger null state
+          isNullState: true // Flag to identify null state
         });
       }
     } else {
       // If no date is selected, show today's photo
       setCurrentImage(getTodayImage());
     }
-  }, [selectedDate, photos, getTodayImage]);
+  }, [selectedDate, photos, getTodayImage, forceShowToday, todayDateString]);
 
   const handleDateSelect = useCallback((date: string) => {
-    // Only select dates that have photos
-    if (hasPhotoForDate(date)) {
+    // Allow selecting today's date even if there's no photo
+    if (date === todayDateString || hasPhotoForDate(date)) {
       setSelectedDate(date);
+      setForceShowToday(date === todayDateString);
     }
-  }, [hasPhotoForDate]);
+  }, [hasPhotoForDate, todayDateString]);
   
   const handlePrevious = useCallback(() => {
     if (!selectedDate) return;
@@ -237,21 +292,89 @@ export default function Home() {
 
   // Set initial image when photos are loaded
   useEffect(() => {
-    if (!loading && photos.length > 0 && !currentImage) {
-      setCurrentImage(getTodayImage());
+    if (!loading && !currentImage) {
+      if (forceShowToday) {
+        // Create a null state for today
+        const today = new Date();
+        const formattedDate = today.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+        
+        setCurrentImage({ 
+          fileName: "null-state.jpg",
+          date: todayDateString,
+          caption: "No photo uploaded yet for today",
+          size: 0,
+          uploadedAt: new Date().toISOString(),
+          url: "", // Empty URL to trigger null state
+          isNullState: true // Flag to identify null state
+        });
+      } else if (photos.length > 0) {
+        setCurrentImage(getTodayImage());
+      }
     }
-  }, [loading, photos, currentImage, getTodayImage]);
+  }, [loading, photos, currentImage, getTodayImage, forceShowToday, todayDateString]);
 
   // Function to get the photo index number
   const getPhotoIndex = useCallback(() => {
     if (!currentImage || !currentImage.date) return "01";
     
-    const index = photos.findIndex(p => p.date === currentImage.date);
-    if (index === -1) return "01";
+    // For null state of today, ensure we show today's date
+    if (currentImage.isNullState && currentImage.date === todayDateString) {
+      const today = new Date();
+      const month = today.getMonth() + 1; // getMonth() returns 0-11
+      const day = today.getDate();
+      return `${month}/${String(day).padStart(2, '0')}`;
+    }
     
-    // Format as two digits with leading zero
-    return String(index + 1).padStart(2, "0");
-  }, [currentImage, photos]);
+    // Format the date as M/DD
+    try {
+      // Parse the date parts directly from the YYYY-MM-DD format to avoid timezone issues
+      const [year, month, day] = currentImage.date.split('-').map(Number);
+      return `${month}/${String(day).padStart(2, '0')}`;
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return currentImage.date.split('-').slice(1).join('/'); // Fallback to MM/DD from YYYY-MM-DD
+    }
+  }, [currentImage, todayDateString]);
+
+  // Function to refresh the photos
+  const refreshPhotos = useCallback(async () => {
+    try {
+      setLoading(true);
+      // Add a timestamp to prevent caching
+      const timestamp = new Date().getTime();
+      const response = await fetch(`/api/photos?t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch photos');
+      }
+      
+      const data = await response.json();
+      console.log('Refreshed photos:', data.photos);
+      
+      if (data.success && data.photos) {
+        setPhotos(data.photos);
+      } else {
+        throw new Error(data.error || 'Failed to fetch photos');
+      }
+    } catch (err) {
+      console.error('Error refreshing photos:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   return (
     <main className="flex min-h-screen flex-col items-center bg-white py-12 px-4">
@@ -296,15 +419,29 @@ export default function Home() {
               </svg>
             </button>
             
-            {currentImage && (
-              <Image
-                src={currentImage.url}
-                width={800}
-                height={450}
-                alt={currentImage.caption}
-                className="w-full h-auto rounded-lg shadow-md"
-                priority
-              />
+            {currentImage && currentImage.isNullState ? (
+              <div className="w-full h-[450px] bg-gray-100 rounded-lg shadow-md flex flex-col items-center justify-center p-6 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-4">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2z"></path>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <h3 className="text-xl font-medium text-gray-700 mb-2">No photo yet</h3>
+                <p className="text-gray-500 max-w-md">
+                  Derrick hasn't uploaded a photo for this day yet. Check back later or browse other days using the calendar below.
+                </p>
+              </div>
+            ) : (
+              currentImage && currentImage.url && (
+                <Image
+                  src={currentImage.url}
+                  width={800}
+                  height={450}
+                  alt={currentImage.caption}
+                  className="w-full h-auto rounded-lg shadow-md"
+                  priority
+                />
+              )
             )}
             
             {/* Right navigation arrow */}
@@ -325,14 +462,6 @@ export default function Home() {
                 {currentImage.metadata.aperture && (
                   <span>
                     <span className="font-bold">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <line x1="12" y1="2" x2="12" y2="4"></line>
-                        <line x1="12" y1="20" x2="12" y2="22"></line>
-                        <line x1="2" y1="12" x2="4" y2="12"></line>
-                        <line x1="20" y1="12" x2="22" y2="12"></line>
-                      </svg>
                       Aperture:
                     </span> {currentImage.metadata.aperture} &nbsp; &nbsp; &nbsp;
                   </span>

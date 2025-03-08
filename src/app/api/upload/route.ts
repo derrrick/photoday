@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir, readFile } from 'fs/promises';
+import { writeFile, mkdir, readFile, unlink } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 
@@ -70,7 +70,34 @@ export async function POST(request: NextRequest) {
       await mkdir(uploadsDir, { recursive: true });
     }
 
-    // Write the file to the uploads directory
+    // Read existing metadata
+    const existingMetadata = await readMetadata();
+    
+    // Check if a photo for this date already exists
+    const existingPhotoIndex = existingMetadata.findIndex(photo => photo.date === date);
+    let replacedPhoto = null;
+    
+    if (existingPhotoIndex !== -1) {
+      // Save the existing photo info for deletion
+      replacedPhoto = existingMetadata[existingPhotoIndex];
+      
+      // Remove the existing photo from the metadata array
+      existingMetadata.splice(existingPhotoIndex, 1);
+      
+      // Try to delete the old file
+      try {
+        const oldFilePath = join(uploadsDir, replacedPhoto.fileName);
+        if (existsSync(oldFilePath)) {
+          await unlink(oldFilePath);
+          console.log(`Deleted old file: ${replacedPhoto.fileName}`);
+        }
+      } catch (error) {
+        console.error('Error deleting old file:', error);
+        // Continue with the upload even if deletion fails
+      }
+    }
+
+    // Write the new file to the uploads directory
     const filePath = join(uploadsDir, fileName);
     const buffer = Buffer.from(await image.arrayBuffer());
     await writeFile(filePath, buffer);
@@ -100,18 +127,19 @@ export async function POST(request: NextRequest) {
     if (takenAt) photoMetadata.takenAt = takenAt;
     if (cameraMetadata) photoMetadata.metadata = cameraMetadata;
 
-    // Read existing metadata, add the new entry, and write back
-    const existingMetadata = await readMetadata();
+    // Add the new entry and write back
     existingMetadata.push(photoMetadata);
     await writeMetadata(existingMetadata);
 
-    // Return success response with the file path
+    // Return success response with the file path and replacement info
     return NextResponse.json({
       success: true,
       filePath: `/uploads/${fileName}`,
       date,
       caption,
       metadata: photoMetadata,
+      replaced: replacedPhoto ? true : false,
+      replacedFile: replacedPhoto ? replacedPhoto.fileName : null
     });
   } catch (error) {
     console.error('Error uploading file:', error);
