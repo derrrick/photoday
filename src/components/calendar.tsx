@@ -63,20 +63,19 @@ export default function Calendar({ onSelectDate, selectedDate, availableDates }:
           disabled={!clickable}
         >
           <div
-            className={`text-lg relative flex items-center justify-center w-full h-full
-              ${isSelected ? "text-red-500 font-bold" : ""}
-              ${isToday && !isMissing ? "text-red-500" : ""}
+            className={`text-xs relative flex items-center justify-center w-full h-full
+              ${isSelected ? "text-black font-bold" : ""}
+              ${isToday ? "text-red-500" : ""}
               ${isMissing && !isToday ? "text-gray-400" : ""}
-              ${!isClickable(date) ? "text-gray-300" : isSelected || (isToday && !isMissing) ? "" : isMissing && !isToday ? "" : "text-black"}
+              ${!isClickable(date) ? "text-gray-300" : isSelected ? "text-black" : isToday ? "text-red-500" : isMissing ? "text-gray-400" : "text-black"}
             `}
           >
-            {isMissing && !isToday ? "●" : clickable ? "●" : "○"}
-            {isToday && !isSelected && !isMissing && (
-              <span className="absolute w-[1.2em] h-[1.2em] border-2 border-red-500 rounded-full pointer-events-none"></span>
-            )}
-            {isSelected && (
-              <span className="absolute w-[1.2em] h-[1.2em] bg-red-500 bg-opacity-20 rounded-full pointer-events-none"></span>
-            )}
+            <span className="relative inline-flex items-center justify-center">
+              {isMissing && !isToday ? "●" : clickable ? "●" : "○"}
+              {isSelected && (
+                <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[1.1em] h-[1.1em] border-2 border-red-500 bg-opacity-20 rounded-full pointer-events-none"></span>
+              )}
+            </span>
           </div>
         </button>,
       )

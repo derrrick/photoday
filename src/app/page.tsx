@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import Image from "next/image";
 import Calendar from "@/components/calendar";
+import { parse } from "date-fns";
 
 // Interface for photo data
 interface Photo {
@@ -73,6 +74,7 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useState<string | null>(todayDateString);
   const [currentImage, setCurrentImage] = useState<Photo | null>(null);
   const [forceShowToday, setForceShowToday] = useState(true); // Flag to force showing today's null state
+  const [isFullScreen, setIsFullScreen] = useState(false); // Add this line for fullscreen functionality
   
   // Helper function to get available dates (dates that have images)
   const getAvailableDates = useCallback(() => {
@@ -102,8 +104,6 @@ export default function Home() {
     }
     
     // If no photos at all, create a null state for today
-    const today = new Date();
-    
     return {
       fileName: "null-state.jpg",
       date: todayDate,
@@ -113,7 +113,7 @@ export default function Home() {
       url: "", // Empty URL to trigger null state
       isNullState: true // Flag to identify null state
     };
-  }, [photos, formatDisplayDate]);
+  }, [photos]);
   
   // Fetch photos from the API
   useEffect(() => {
@@ -196,8 +196,6 @@ export default function Home() {
         }
         
         // Create a null state for today
-        const today = new Date();
-        
         setCurrentImage({ 
           fileName: "null-state.jpg",
           date: todayDateString,
@@ -215,8 +213,6 @@ export default function Home() {
         setCurrentImage(photo);
       } else {
         // If no exact match, set a null state
-        const selectedDateObj = new Date(selectedDate);
-        
         setCurrentImage({ 
           fileName: "null-state.jpg",
           date: selectedDate,
@@ -269,8 +265,6 @@ export default function Home() {
         }
         
         // Create a null state for today
-        const today = new Date();
-        
         setCurrentImage({ 
           fileName: "null-state.jpg",
           date: todayDateString,
@@ -347,118 +341,170 @@ export default function Home() {
     }
   }, []);
 
+  // This variable is declared but never used
+  const displayDate = formatDisplayDate(selectedDate, currentImage?.takenAt);
+
+  // Add this useEffect for keyboard navigation throughout the app
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // In full-screen mode
+      if (isFullScreen) {
+        switch (e.key) {
+          case 'Escape':
+            setIsFullScreen(false);
+            break;
+          case 'ArrowLeft':
+            if (hasPrevious) handlePrevious();
+            break;
+          case 'ArrowRight':
+            if (hasNext) handleNext();
+            break;
+          default:
+            break;
+        }
+      } 
+      // In normal view - also allow arrow keys to navigate
+      else {
+        switch (e.key) {
+          case 'ArrowLeft':
+            if (hasPrevious) handlePrevious();
+            break;
+          case 'ArrowRight':
+            if (hasNext) handleNext();
+            break;
+          default:
+            break;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullScreen, hasPrevious, hasNext, handlePrevious, handleNext]);
+
   return (
     <main className="flex min-h-screen flex-col items-center bg-white py-12 px-4">
       <div className="max-w-[800px] w-full">
-        {loading ? (
-          <div className="flex justify-center items-center h-[450px]">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        ) : error ? (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-            {error}
-          </div>
-        ) : (
-          <div className="relative flex flex-col items-center">
-            {/* Photo metadata header */}
-            {currentImage && (
-              <div className="w-full pb-4">
-                <h3 className="font-medium text-sm text-black pb-2 pt-4 m-0">
-                  <span className="font-bold">{getPhotoIndex()} — {currentImage.caption}</span>
-                  {currentImage.location && (
-                    <span className="text-gray-500 ml-4">
-                      📍 {currentImage.location} {currentImage.date && currentImage.takenAt && (
-                        <>
-                          &nbsp;•&nbsp; {formatDisplayDate(currentImage.date, currentImage.takenAt)}
-                        </>
-                      )}
+        {/* Photo Display Column */}
+        <div className="md:col-span-2">
+          {loading ? (
+            <div className="flex justify-center items-center h-96">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : currentImage ? (
+            <div className="relative">
+              {/* Photo metadata header */}
+              {currentImage && (
+                <div className="w-full pb-4">
+                  <h3 className="font-medium text-sm text-black pb-2 pt-4 m-0">
+                    <span className="font-bold">{getPhotoIndex()} — {currentImage.caption}</span>
+                    {currentImage.location && (
+                      <span className="text-gray-500 ml-4">
+                        📍 {currentImage.location} {currentImage.date && currentImage.takenAt && (
+                          <>
+                            &nbsp;•&nbsp; {formatDisplayDate(currentImage.date, currentImage.takenAt)}
+                          </>
+                        )}
+                      </span>
+                    )}
+                  </h3>
+                </div>
+              )}
+              
+              {/* Image with clickable behavior */}
+              <div 
+                className="relative group cursor-pointer"
+                onClick={() => setIsFullScreen(true)}
+              >
+                <div className="relative aspect-video overflow-hidden rounded-lg shadow-lg">
+                  {currentImage.url && (
+                    <Image
+                      src={currentImage.url}
+                      alt={currentImage.caption || `Photo`}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover"
+                      priority
+                    />
+                  )}
+                </div>
+                
+                {/* Hover overlay */}
+                <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-30 transition-opacity duration-300 rounded-lg"></div>
+                
+                {/* Expand icon on hover */}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <polyline points="9 21 3 21 3 15"></polyline>
+                    <line x1="21" y1="3" x2="14" y2="10"></line>
+                    <line x1="3" y1="21" x2="10" y2="14"></line>
+                  </svg>
+                </div>
+              </div>
+              
+              {/* Camera metadata footer */}
+              {currentImage.metadata && (
+                <h3 className="font-normal text-sm text-gray-500 mt-4 mb-4 w-full">
+                  {currentImage.metadata.aperture && (
+                    <span>
+                      <span className="font-bold">
+                        Aperture:
+                      </span> {currentImage.metadata.aperture} &nbsp; &nbsp; &nbsp;
+                    </span>
+                  )}
+                  
+                  {currentImage.metadata.shutterSpeed && (
+                    <span>
+                      <span className="font-bold">Shutter:</span> {currentImage.metadata.shutterSpeed} &nbsp; &nbsp; &nbsp;
+                    </span>
+                  )}
+                  
+                  {currentImage.metadata.iso && (
+                    <span>
+                      <span className="font-bold">ISO:</span> {currentImage.metadata.iso} &nbsp; &nbsp; &nbsp;
+                    </span>
+                  )}
+                  
+                  {currentImage.metadata.focalLength && (
+                    <span>
+                      <span className="font-bold">Focal length:</span> {currentImage.metadata.focalLength}
                     </span>
                   )}
                 </h3>
+              )}
+              
+              {/* Navigation buttons below the image */}
+              <div className="flex justify-between mt-4">
+                <button 
+                  onClick={handlePrevious}
+                  disabled={!hasPrevious}
+                  className="bg-white hover:bg-gray-100 p-2 rounded-full shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Previous photo"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M15 18l-6-6 6-6" />
+                  </svg>
+                </button>
+                
+                <button 
+                  onClick={handleNext}
+                  disabled={!hasNext}
+                  className="bg-white hover:bg-gray-100 p-2 rounded-full shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Next photo"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </button>
               </div>
-            )}
-            
-            {/* Left navigation arrow */}
-            <button 
-              onClick={handlePrevious}
-              disabled={!hasPrevious}
-              className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white/80 hover:bg-white/90 p-2 rounded-full shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Previous photo"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-800">
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-            
-            {currentImage && currentImage.isNullState ? (
-              <div className="w-full h-[450px] bg-gray-100 rounded-lg shadow-md flex flex-col items-center justify-center p-6 text-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-4">
-                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2z"></path>
-                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                  <polyline points="21 15 16 10 5 21"></polyline>
-                </svg>
-                <h3 className="text-xl font-medium text-gray-700 mb-2">No photo yet</h3>
-                <p className="text-gray-500 max-w-md">
-                  Derrick hasn&apos;t uploaded a photo for this day yet. Check back later or browse other days using the calendar below.
-                </p>
-              </div>
-            ) : (
-              currentImage && currentImage.url && (
-                <Image
-                  src={currentImage.url}
-                  width={800}
-                  height={450}
-                  alt={currentImage.caption}
-                  className="w-full h-auto rounded-lg shadow-md"
-                  priority
-                />
-              )
-            )}
-            
-            {/* Right navigation arrow */}
-            <button 
-              onClick={handleNext}
-              disabled={!hasNext}
-              className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white/80 hover:bg-white/90 p-2 rounded-full shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Next photo"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-800">
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-            
-            {/* Camera metadata footer */}
-            {currentImage && currentImage.metadata && (
-              <h3 className="font-normal text-sm text-gray-500 mt-2 mb-0 w-full">
-                {currentImage.metadata.aperture && (
-                  <span>
-                    <span className="font-bold">
-                      Aperture:
-                    </span> {currentImage.metadata.aperture} &nbsp; &nbsp; &nbsp;
-                  </span>
-                )}
-                
-                {currentImage.metadata.shutterSpeed && (
-                  <span>
-                    <span className="font-bold">Shutter:</span> {currentImage.metadata.shutterSpeed} &nbsp; &nbsp; &nbsp;
-                  </span>
-                )}
-                
-                {currentImage.metadata.iso && (
-                  <span>
-                    <span className="font-bold">ISO:</span> {currentImage.metadata.iso} &nbsp; &nbsp; &nbsp;
-                  </span>
-                )}
-                
-                {currentImage.metadata.focalLength && (
-                  <span>
-                    <span className="font-bold">Focal length:</span> {currentImage.metadata.focalLength}
-                  </span>
-                )}
-              </h3>
-            )}
-          </div>
-        )}
+            </div>
+          ) : (
+            <div className="flex justify-center items-center h-96">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          )}
+        </div>
 
         <div className="mt-[200px] w-full flex justify-center">
           <Calendar 
@@ -468,6 +514,121 @@ export default function Home() {
           />
         </div>
       </div>
+
+      {/* Full-screen modal */}
+      {isFullScreen && currentImage && (
+        <div 
+          className="fixed inset-0 bg-black z-50 flex flex-col justify-center items-center"
+          onClick={() => setIsFullScreen(false)} // Close when clicking the background
+        >
+          {/* Close button - more prominent */}
+          <button 
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent triggering the background click
+              setIsFullScreen(false);
+            }}
+            className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 p-3 rounded-full transition-colors duration-200 text-white"
+            aria-label="Close full-screen view"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+          
+          <div 
+            className="relative w-full h-full max-h-screen flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the image container
+          >
+            {/* Left navigation arrow */}
+            {hasPrevious && (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering the background click
+                  handlePrevious();
+                }}
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-black/30 hover:bg-black/50 p-3 rounded-full transition-colors duration-200"
+                aria-label="Previous photo"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
+            )}
+            
+            {/* Full-screen image */}
+            <div className="relative w-full h-full flex items-center justify-center p-4">
+              {currentImage.url && (
+                <Image
+                  src={currentImage.url}
+                  alt={currentImage.caption || `Photo`}
+                  fill
+                  sizes="100vw"
+                  className="object-contain"
+                  priority
+                />
+              )}
+            </div>
+            
+            {/* Right navigation arrow */}
+            {hasNext && (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering the background click
+                  handleNext();
+                }}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-black/30 hover:bg-black/50 p-3 rounded-full transition-colors duration-200"
+                aria-label="Next photo"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </button>
+            )}
+          </div>
+          
+          {/* Metadata footer in fullscreen */}
+          <div 
+            className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-4"
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the metadata
+          >
+            <h3 className="text-lg font-medium mb-1">{currentImage.caption}</h3>
+            
+            {currentImage.metadata && (
+              <div className="text-sm">
+                {currentImage.metadata.aperture && (
+                  <span className="mr-4">
+                    <span className="font-bold">Aperture:</span> {currentImage.metadata.aperture}
+                  </span>
+                )}
+                
+                {currentImage.metadata.shutterSpeed && (
+                  <span className="mr-4">
+                    <span className="font-bold">Shutter:</span> {currentImage.metadata.shutterSpeed}
+                  </span>
+                )}
+                
+                {currentImage.metadata.iso && (
+                  <span className="mr-4">
+                    <span className="font-bold">ISO:</span> {currentImage.metadata.iso}
+                  </span>
+                )}
+                
+                {currentImage.metadata.focalLength && (
+                  <span>
+                    <span className="font-bold">Focal length:</span> {currentImage.metadata.focalLength}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {/* Instructions overlay - simplified */}
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm">
+            Press ESC to close
+          </div>
+        </div>
+      )}
     </main>
   );
 }

@@ -1,48 +1,128 @@
 [
   {
-    "fileName": "2025-03-07-1741399507372.png",
-    "date": "2025-03-05",
-    "caption": "Cabrillo highway with Jess",
-    "size": 2459000,
-    "uploadedAt": "2025-03-08T02:05:05.373Z",
-    "url": "/uploads/2025-03-07-1741399507372.png",
-    "location": "Big Sur, CA",
-    "takenAt": "2:21pm",
+    "fileName": "2025-03-08-1741450740250.jpg",
+    "date": "2025-03-08",
+    "caption": "F. Stanton Tunnel",
+    "size": 642025,
+    "uploadedAt": "2025-03-08T16:19:00.000Z",
+    "url": "/uploads/2025-03-08-1741450740250.jpg",
+    "location": "Monterey, CA",
+    "takenAt": "4:18",
+    "metadata": {
+      "aperture": "f8",
+      "shutterSpeed": "1/250",
+      "iso": "200",
+      "focalLength": "50"
+    }
+  },
+  {
+    "fileName": "2025-03-04-1741454918988.jpg",
+    "date": "2025-03-04",
+    "caption": "Docked boats ",
+    "size": 9404102,
+    "uploadedAt": "2025-03-08T17:28:38.000Z",
+    "url": "/uploads/2025-03-04-1741454918988.jpg",
+    "location": "Old Fisherman's Wharf",
+    "takenAt": "12:44am",
+    "metadata": {
+      "aperture": "f/8",
+      "shutterSpeed": "1/250",
+      "iso": "200",
+      "focalLength": "50"
+    }
+  },
+  {
+    "fileName": "2025-03-07-1741455382805.jpg",
+    "date": "2025-03-07",
+    "caption": "Fisherman and his truck",
+    "size": 767135,
+    "uploadedAt": "2025-03-08T17:36:22.000Z",
+    "url": "/uploads/2025-03-07-1741455382805.jpg",
+    "location": "Monterey Wharf",
+    "takenAt": "4:57pm",
+    "metadata": {
+      "aperture": "f/8",
+      "shutterSpeed": "1/60",
+      "iso": "200",
+      "focalLength": "35mm"
+    }
+  },
+  {
+    "fileName": "2025-03-01-1741455658319.jpg",
+    "date": "2025-03-01",
+    "caption": "Dingy",
+    "size": 1152211,
+    "uploadedAt": "2025-03-08T17:40:58.000Z",
+    "url": "/uploads/2025-03-01-1741455658319.jpg",
+    "location": "Monterey Bay, CA",
+    "takenAt": "5:17pm",
+    "metadata": {
+      "aperture": "f/8",
+      "shutterSpeed": "1/250",
+      "iso": "200",
+      "focalLength": "70mm"
+    }
+  },
+  {
+    "fileName": "2025-03-06-1741456486489.jpg",
+    "date": "2025-03-06",
+    "caption": "Mustachio",
+    "size": 6661644,
+    "uploadedAt": "2025-03-08T17:54:46.000Z",
+    "url": "/uploads/2025-03-06-1741456486489.jpg",
+    "location": "Carmel, CA",
+    "takenAt": "1:17pm",
     "metadata": {
       "aperture": "f4",
       "shutterSpeed": "1/250",
       "iso": "200",
-      "focalLength": "85mm"
-    }
-  },
-  {
-    "fileName": "2025-03-07-1741394574622.png",
-    "date": "2025-03-06",
-    "caption": "Sunset at Point Lobos",
-    "size": 1685315,
-    "uploadedAt": "2025-03-07T18:42:54.623Z",
-    "url": "/uploads/2025-03-07-1741394574622.png",
-    "location": "Point Lobos, CA",
-    "takenAt": "5:45pm",
-    "metadata": {
-      "aperture": "f/2.8",
-      "shutterSpeed": "1/125",
-      "iso": "400",
       "focalLength": "50mm"
     }
   },
   {
-    "fileName": "2025-03-07-1741409421272.jpg",
-    "date": "2025-03-07",
-    "caption": "Rusty truck on the wharf",
-    "size": 623218,
-    "uploadedAt": "2025-03-08T04:50:21.274Z",
-    "url": "/uploads/2025-03-07-1741409421272.jpg",
-    "location": "Monterey, CA",
-    "takenAt": "5:22pm",
+    "fileName": "2025-02-27-1741456701471.jpg",
+    "date": "2025-02-27",
+    "caption": "Perched titmouse",
+    "size": 26387945,
+    "uploadedAt": "2025-03-08T17:58:21.000Z",
+    "url": "/uploads/2025-02-27-1741456701471.jpg",
+    "location": "Pacific Grove, CA",
+    "takenAt": "11:19am",
+    "metadata": {
+      "aperture": "f/2",
+      "shutterSpeed": "1/800",
+      "iso": "200",
+      "focalLength": "135mm"
+    }
+  },
+  {
+    "fileName": "2025-03-05-1741456802857.jpg",
+    "date": "2025-03-05",
+    "caption": "Love on the wharf",
+    "size": 543926,
+    "uploadedAt": "2025-03-08T18:00:02.000Z",
+    "url": "/uploads/2025-03-05-1741456802857.jpg",
+    "location": "Monterey wharf",
+    "takenAt": "4:41pm",
+    "metadata": {
+      "aperture": "f/4",
+      "shutterSpeed": "1/250",
+      "iso": "200",
+      "focalLength": "70mm"
+    }
+  },
+  {
+    "fileName": "2025-02-11-1741457156732.jpg",
+    "date": "2025-02-11",
+    "caption": "Front door",
+    "size": 3443433,
+    "uploadedAt": "2025-03-08T18:05:56.000Z",
+    "url": "/uploads/2025-02-11-1741457156732.jpg",
+    "location": "Pacific Grove, CA",
+    "takenAt": "10:55am",
     "metadata": {
       "aperture": "f/8",
-      "shutterSpeed": "1/60",
+      "shutterSpeed": "1/250",
       "iso": "200",
       "focalLength": "50mm"
     }

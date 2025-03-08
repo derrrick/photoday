@@ -9,9 +9,9 @@ export default function Header() {
           <Image 
             src="/images/schippert-logo.svg"
             alt="Schippert Logo"
-            width={180}
-            height={47}
-            className="text-blue-600 h-10 w-auto"
+            width={104}
+            height={29}
+            className="text-blue-600 h-8 w-auto"
             priority
           />
         </Link>
