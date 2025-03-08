@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import Image from "next/image";
 import Calendar from "@/components/calendar";
-import { Button } from "@/components/ui/button";
 
 // Interface for photo data
 interface Photo {
@@ -47,35 +46,6 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useState<string | null>(getTodayDateString());
   const [currentImage, setCurrentImage] = useState<{ src: string; caption: string } | null>(null);
   
-  // Fetch photos from the API
-  useEffect(() => {
-    const fetchPhotos = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/photos');
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch photos');
-        }
-        
-        const data = await response.json();
-        
-        if (data.success && data.photos) {
-          setPhotos(data.photos);
-        } else {
-          throw new Error(data.error || 'Failed to fetch photos');
-        }
-      } catch (err) {
-        console.error('Error fetching photos:', err);
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchPhotos();
-  }, []);
-  
   // Helper function to get available dates (dates that have images)
   const getAvailableDates = () => {
     return photos.map(photo => photo.date);
@@ -116,6 +86,35 @@ export default function Home() {
       caption: fallbackImages[1].caption 
     };
   };
+  
+  // Fetch photos from the API
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/photos');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch photos');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.photos) {
+          setPhotos(data.photos);
+        } else {
+          throw new Error(data.error || 'Failed to fetch photos');
+        }
+      } catch (err) {
+        console.error('Error fetching photos:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchPhotos();
+  }, []);
 
   // Function to find the nearest available date
   const findNearestDate = (targetDate: string, direction: 'prev' | 'next'): string | null => {
@@ -166,7 +165,7 @@ export default function Home() {
       // If no date is selected, show today's photo
       setCurrentImage(getTodayImage());
     }
-  }, [selectedDate, photos]);
+  }, [selectedDate, photos, getTodayImage]); // Added getTodayImage to dependencies
 
   const handleDateSelect = (date: string) => {
     // Only select dates that have photos
@@ -196,7 +195,7 @@ export default function Home() {
     if (!loading && photos.length > 0 && !currentImage) {
       setCurrentImage(getTodayImage());
     }
-  }, [loading, photos]);
+  }, [loading, photos, currentImage, getTodayImage]); // Added currentImage and getTodayImage to dependencies
 
   return (
     <main className="flex min-h-screen flex-col items-center bg-white py-24 px-4">
