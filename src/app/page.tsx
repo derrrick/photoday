@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Image from "next/image";
 import Calendar from "@/components/calendar";
 
@@ -47,17 +47,17 @@ export default function Home() {
   const [currentImage, setCurrentImage] = useState<{ src: string; caption: string } | null>(null);
   
   // Helper function to get available dates (dates that have images)
-  const getAvailableDates = () => {
+  const getAvailableDates = useCallback(() => {
     return photos.map(photo => photo.date);
-  };
+  }, [photos]);
   
   // Helper function to check if a date has a photo
-  const hasPhotoForDate = (dateString: string) => {
+  const hasPhotoForDate = useCallback((dateString: string) => {
     return photos.some(photo => photo.date === dateString);
-  };
+  }, [photos]);
   
-  // Helper function to get today's image
-  const getTodayImage = () => {
+  // Helper function to get today's image - memoized with useCallback
+  const getTodayImage = useCallback(() => {
     const todayDate = getTodayDateString();
     
     // First, try to find a photo with today's date
@@ -85,7 +85,7 @@ export default function Home() {
       src: fallbackImages[1].src, 
       caption: fallbackImages[1].caption 
     };
-  };
+  }, [photos]); // Only depend on photos
   
   // Fetch photos from the API
   useEffect(() => {
@@ -117,7 +117,7 @@ export default function Home() {
   }, []);
 
   // Function to find the nearest available date
-  const findNearestDate = (targetDate: string, direction: 'prev' | 'next'): string | null => {
+  const findNearestDate = useCallback((targetDate: string, direction: 'prev' | 'next'): string | null => {
     const availableDates = getAvailableDates();
     if (!targetDate || availableDates.length === 0) return null;
     
@@ -138,7 +138,7 @@ export default function Home() {
       
       return nextDates.length > 0 ? nextDates[0] : null;
     }
-  };
+  }, [getAvailableDates]);
 
   // Load image when selected date changes or photos are loaded
   useEffect(() => {
@@ -165,26 +165,26 @@ export default function Home() {
       // If no date is selected, show today's photo
       setCurrentImage(getTodayImage());
     }
-  }, [selectedDate, photos, getTodayImage]); // Added getTodayImage to dependencies
+  }, [selectedDate, photos, getTodayImage]);
 
-  const handleDateSelect = (date: string) => {
+  const handleDateSelect = useCallback((date: string) => {
     // Only select dates that have photos
     if (hasPhotoForDate(date)) {
       setSelectedDate(date);
     }
-  };
+  }, [hasPhotoForDate]);
   
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     if (!selectedDate) return;
     const prevDate = findNearestDate(selectedDate, 'prev');
     if (prevDate) setSelectedDate(prevDate);
-  };
+  }, [selectedDate, findNearestDate]);
   
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (!selectedDate) return;
     const nextDate = findNearestDate(selectedDate, 'next');
     if (nextDate) setSelectedDate(nextDate);
-  };
+  }, [selectedDate, findNearestDate]);
 
   // Check if navigation is possible
   const hasPrevious = selectedDate && findNearestDate(selectedDate, 'prev') !== null;
@@ -195,7 +195,7 @@ export default function Home() {
     if (!loading && photos.length > 0 && !currentImage) {
       setCurrentImage(getTodayImage());
     }
-  }, [loading, photos, currentImage, getTodayImage]); // Added currentImage and getTodayImage to dependencies
+  }, [loading, photos, currentImage, getTodayImage]);
 
   return (
     <main className="flex min-h-screen flex-col items-center bg-white py-12 px-4">
