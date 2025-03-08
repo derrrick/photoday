@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PhotoDay - Capture and Share Your Memories",
-  description: "A modern platform for organizing, editing, and sharing your precious memories with friends and family.",
+  title: "PhotoDay - One Photo Every Day",
+  description: "A personal project to capture one photo every day",
   keywords: ["photos", "gallery", "memories", "sharing", "photo management", "photo editing"],
   authors: [{ name: "PhotoDay Team" }],
   creator: "PhotoDay",
