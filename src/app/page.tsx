@@ -145,14 +145,6 @@ export default function Home() {
           <p className="mt-4 text-center text-gray-700 text-lg italic">
             {currentImage?.caption || "Select a date to view a photo"}
           </p>
-          
-          {selectedDate && (
-            <div className="mt-4">
-              <Button variant="outline" onClick={() => setSelectedDate(null)}>
-                Reset Selection
-              </Button>
-            </div>
-          )}
         </div>
 
         <div className="mt-[200px] w-full flex justify-center">

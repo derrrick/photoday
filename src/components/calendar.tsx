@@ -15,12 +15,6 @@ export default function Calendar({ onSelectDate, selectedDate }: CalendarProps) 
   // Initialize the component with the current date
   useEffect(() => {
     setCurrentDate(new Date(2025, 1, 27)) // February 27, 2025
-    
-    // If no date is selected initially, select today's date
-    if (!selectedDate) {
-      const todayString = formatDate(2025, 1, 27) // February 27, 2025
-      onSelectDate(todayString)
-    }
   }, [])
 
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
